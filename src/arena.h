@@ -3,9 +3,10 @@
 #include <assert.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <math.h>
 
 #define ARENA_1K 1024
-#define ARENA_4K 4 * 1024
+#define ARENA_4K 4 * ARENA_1K
 #define ARENA_1M (ARENA_1K * ARENA_1K)
 
 #define ARENA_FIRST(A) ((A)->pFirst)
@@ -28,7 +29,7 @@ typedef struct Arena
 } Arena;
 
 static inline ArenaBlock*
-ArenaNewBlock(size_t bytes)
+ArenaBlockNew(size_t bytes)
 {
     ArenaBlock* pNew = malloc(sizeof(ArenaBlock) + bytes);
     pNew->size = 0;
@@ -41,7 +42,7 @@ static inline Arena
 ArenaCreate(size_t bytes)
 {
     Arena a = {.cap = bytes};
-    ArenaBlock* pNew = ArenaNewBlock(bytes);
+    ArenaBlock* pNew = ArenaBlockNew(bytes);
     a.pLast = a.pFirst = pNew;
 
     return a;
@@ -57,22 +58,27 @@ ArenaClean(Arena* a)
 static inline void*
 ArenaAlloc(Arena* a, size_t bytes)
 {
-    assert(bytes <= a->cap && "trying to allocate more than 1 arena block");
+    size_t newSize = bytes;
+    double mulOf = (double)newSize / (double)sizeof(long);
+    size_t cMulOfl = ceil(mulOf);
+    newSize = sizeof(long) * cMulOfl;
+
+    assert(newSize <= a->cap && "trying to allocate more than 1 arena block");
 
     void* pRBlock = nullptr;
     ArenaBlock* pLast = a->pLast;
 
-    if (pLast->size + bytes > a->cap)
+    if (pLast->size + newSize > a->cap)
     {
         /* won't be null after reset */
         if (!pLast->pNext)
-            pLast->pNext = ArenaNewBlock(a->cap);
+            pLast->pNext = ArenaBlockNew(a->cap);
 
         a->pLast = pLast->pNext;
     }
 
     pRBlock = &pLast->pData[pLast->size];
-    pLast->size += bytes + 1;
+    pLast->size += newSize;
 
     return pRBlock;
 }

@@ -2,17 +2,19 @@
 #include "arena.h"
 
 #include <string.h>
+#include <stdalign.h>
 
 int
 main()
 {
-    auto a = ArenaCreate(ARENA_4K);
+    Arena a = ArenaCreate(ARENA_4K);
 
-    const char* s0 = "what";
+    const char* s0 = "what9999";
     const char* s1 = "is";
     const char* s2 = "this";
 
-    char* sc0 = ArenaAlloc(&a, 4);
+    /* s1 will concatenate with s0 because no room for null char */
+    char* sc0 = ArenaAlloc(&a, 8);
     char* sc1 = ArenaAlloc(&a, 4);
     char* sc2 = ArenaAlloc(&a, 4);
 
@@ -25,7 +27,7 @@ main()
     COUT("\n");
 
     sc1 = ArenaAlloc(&a, 2000);
-    sc2 = ArenaAlloc(&a, 1000);
+    sc2 = ArenaAlloc(&a, ARENA_1K);
 
     strncpy(sc1, s1, strlen(s1) + 1);
     strncpy(sc2, s2, strlen(s2) + 1);
