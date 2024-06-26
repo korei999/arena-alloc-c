@@ -6,17 +6,21 @@
 int
 main()
 {
-    Arena a = ArenaCreate(ARENA_1K);
+    auto a = ArenaCreate(ARENA_4K);
 
-    char* buff = ArenaAlloc(&a, 100);
-    const char* what = "hwat";
-    strcpy(buff, what);
-    COUT("buff: '{}'\n", buff);
+    const char* s0 = "what";
+    const char* s1 = "is";
+    const char* s2 = "this";
 
-    char* buff2 = ArenaAlloc(&a, 100);
-    const char* what2 = "asdf";
-    strcpy(buff2, what2);
-    COUT("buff2: '{}'\n", buff2);
+    char* sc0 = ArenaAlloc(&a, 4);
+    char* sc1 = ArenaAlloc(&a, 4);
+    char* sc2 = ArenaAlloc(&a, 4);
 
-    ArenaFree(&a);
+    strncpy(sc0, s0, strlen(s0) + 1);
+    strncpy(sc1, s1, strlen(s1) + 1);
+    strncpy(sc2, s2, strlen(s2) + 1);
+
+    COUT("sc0: '{}'\nsc1: '{}'\nsc2: '{}'\n", sc0, sc1, sc2);
+
+    ArenaClean(&a);
 }
