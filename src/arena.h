@@ -6,7 +6,7 @@
 #include <math.h>
 
 #define ARENA_1K 1024
-#define ARENA_4K 4 * ARENA_1K
+#define ARENA_4K (4 * ARENA_1K)
 #define ARENA_1M (ARENA_1K * ARENA_1K)
 
 #define ARENA_FIRST(A) ((A)->pFirst)
@@ -28,10 +28,22 @@ typedef struct Arena
     const size_t cap;
 } Arena;
 
+static inline size_t
+ArenaAlignedSize(size_t bytes)
+{
+    size_t newSize = bytes;
+    double mulOf = (double)newSize / (double)sizeof(long);
+    size_t cMulOfl = ceil(mulOf);
+    newSize = sizeof(long) * cMulOfl;
+
+    return newSize;
+}
+
 static inline ArenaBlock*
 ArenaBlockNew(size_t bytes)
 {
-    ArenaBlock* pNew = malloc(sizeof(ArenaBlock) + bytes);
+    size_t alignedSize = ArenaAlignedSize(bytes);
+    ArenaBlock* pNew = malloc(sizeof(ArenaBlock) + alignedSize);
     pNew->size = 0;
     pNew->pNext = nullptr;
 
@@ -41,8 +53,9 @@ ArenaBlockNew(size_t bytes)
 static inline Arena
 ArenaCreate(size_t bytes)
 {
-    Arena a = {.cap = bytes};
-    ArenaBlock* pNew = ArenaBlockNew(bytes);
+    size_t alignedSize = ArenaAlignedSize(bytes);
+    Arena a = {.cap = alignedSize};
+    ArenaBlock* pNew = ArenaBlockNew(alignedSize);
     a.pLast = a.pFirst = pNew;
 
     return a;
@@ -58,17 +71,14 @@ ArenaClean(Arena* a)
 static inline void*
 ArenaAlloc(Arena* a, size_t bytes)
 {
-    size_t newSize = bytes;
-    double mulOf = (double)newSize / (double)sizeof(long);
-    size_t cMulOfl = ceil(mulOf);
-    newSize = sizeof(long) * cMulOfl;
+    size_t alignedSize = ArenaAlignedSize(bytes);
 
-    assert(newSize <= a->cap && "trying to allocate more than 1 arena block");
+    assert(alignedSize <= a->cap && "trying to allocate more than 1 arena block");
 
     void* pRBlock = nullptr;
     ArenaBlock* pLast = a->pLast;
 
-    if (pLast->size + newSize > a->cap)
+    if (pLast->size + alignedSize > a->cap)
     {
         /* won't be null after reset */
         if (!pLast->pNext)
@@ -78,7 +88,7 @@ ArenaAlloc(Arena* a, size_t bytes)
     }
 
     pRBlock = &pLast->pData[pLast->size];
-    pLast->size += newSize;
+    pLast->size += alignedSize;
 
     return pRBlock;
 }
