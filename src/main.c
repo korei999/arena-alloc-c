@@ -1,5 +1,5 @@
 #include "logs.h"
-#include "arena.h"
+#include "adt/arena.h"
 
 #include <string.h>
 #include <stdalign.h>
