@@ -23,6 +23,8 @@ add_executable(
     "src/main.c"
 )
 
+target_link_libraries(${CMAKE_PROJECT_NAME} m)
+
 if (CMAKE_BUILD_TYPE MATCHES "Asan")
     set(CMAKE_BUILD_TYPE "Debug")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=undefined -fsanitize=address")
