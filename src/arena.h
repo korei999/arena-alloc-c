@@ -9,7 +9,6 @@
 
 #define ARENA_FIRST(A) ((A)->pFirst)
 #define ARENA_NEXT(AB) ((AB)->pNext)
-#define ARENA_FOREACH(A, IT) for (typeof(ARENA_FIRST(A)) (IT) = ARENA_FIRST(A); (IT); (IT) = ARENA_NEXT(IT))
 #define ARENA_FOREACH_SAFE(A, IT, TMP) for (typeof(ARENA_FIRST(A)) (IT) = ARENA_FIRST(A), (TMP) = nullptr; (IT) && ((TMP) = ARENA_NEXT(IT), true); (IT) = (TMP))
 
 typedef struct ArenaBlock
