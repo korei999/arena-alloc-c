@@ -21,6 +21,16 @@ main()
     strncpy(sc2, s2, strlen(s2) + 1);
 
     COUT("sc0: '{}'\nsc1: '{}'\nsc2: '{}'\n", sc0, sc1, sc2);
+    ArenaReset(&a);
+    COUT("\n");
+
+    sc1 = ArenaAlloc(&a, 2000);
+    sc2 = ArenaAlloc(&a, 1000);
+
+    strncpy(sc1, s1, strlen(s1) + 1);
+    strncpy(sc2, s2, strlen(s2) + 1);
+
+    COUT("sc0: '{}'\nsc1: '{}'\nsc2: '{}'\n", sc0, sc1, sc2);
 
     ArenaClean(&a);
 }

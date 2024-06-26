@@ -1,5 +1,6 @@
 #pragma once
 
+#include <assert.h>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -9,6 +10,7 @@
 
 #define ARENA_FIRST(A) ((A)->pFirst)
 #define ARENA_NEXT(AB) ((AB)->pNext)
+#define ARENA_FOREACH(A, IT) for (typeof(ARENA_FIRST(A)) (IT) = ARENA_FIRST(A); (IT); (IT) = ARENA_NEXT(IT))
 #define ARENA_FOREACH_SAFE(A, IT, TMP) for (typeof(ARENA_FIRST(A)) (IT) = ARENA_FIRST(A), (TMP) = nullptr; (IT) && ((TMP) = ARENA_NEXT(IT), true); (IT) = (TMP))
 
 typedef struct ArenaBlock
@@ -55,12 +57,17 @@ ArenaClean(Arena* a)
 static inline void*
 ArenaAlloc(Arena* a, size_t bytes)
 {
+    assert(bytes <= a->cap && "trying to allocate more than 1 arena block");
+
     void* pRBlock = nullptr;
     ArenaBlock* pLast = a->pLast;
 
     if (pLast->size + bytes > a->cap)
     {
-        pLast->pNext = ArenaNewBlock(a->cap);
+        /* won't be null after reset */
+        if (!pLast->pNext)
+            pLast->pNext = ArenaNewBlock(a->cap);
+
         a->pLast = pLast->pNext;
     }
 
@@ -68,4 +75,13 @@ ArenaAlloc(Arena* a, size_t bytes)
     pLast->size += bytes + 1;
 
     return pRBlock;
+}
+
+static inline void
+ArenaReset(Arena* a)
+{
+    ARENA_FOREACH(a, it)
+        it->size = 0;
+
+    a->pLast = a->pFirst;
 }
